@@ -197,9 +197,10 @@ document.addEventListener('DOMContentLoaded', () => {
   
       // Determine the API URL based on the current environment
       const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
-      const apiUrl = isProduction 
-        ? 'https://skill-sage-ai-assistant.vercel.app/api/generate-recommendation'
-        : 'http://localhost:3000/api/generate-recommendation';
+      const baseUrl = isProduction 
+        ? 'https://skill-sage-ai-assistant.vercel.app'
+        : 'http://localhost:3000';
+      const apiUrl = `${baseUrl}/api/generate-recommendation`;
       
       // Make API call to the appropriate backend
       const response = await fetch(apiUrl, {
