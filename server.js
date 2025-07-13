@@ -63,9 +63,21 @@ app.use((req, res, next) => {
   next();
 });
 
+// API endpoint for generating recommendations
 app.post('/api/generate-recommendation', async (req, res) => {
   try {
     const { role, experience, skills, goals, project } = req.body;
+    
+    // Log the incoming request (for debugging)
+    console.log('Received request with data:', { role, experience, skills, goals, project });
+    
+    // Validate required fields
+    if (!role) {
+      return res.status(400).json({ 
+        error: 'Validation Error',
+        message: 'Role is required' 
+      });
+    }
     
     // Initialize the model with error handling
     let model;
@@ -81,9 +93,12 @@ app.post('/api/generate-recommendation', async (req, res) => {
       });
     } catch (modelError) {
       console.error('Error initializing model:', modelError);
-      throw new Error(`Failed to initialize AI model: ${modelError.message}`);
+      return res.status(500).json({ 
+        error: 'Server Error',
+        message: `Failed to initialize AI model: ${modelError.message}`
+      });
     }
-0    
+    
     const prompt = `You are a career advisor AI. Analyze the following profile and create a personalized learning path.
 
 User Profile:
@@ -136,37 +151,83 @@ IMPORTANT: Only return valid JSON that matches this exact structure.`;
       maxOutputTokens: 2048,
     };
 
-    const result = await model.generateContent({
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig,
-    });
-    
-    const response = await result.response;
-    if (!response || !response.candidates || !response.candidates[0] || !response.candidates[0].content) {
-      throw new Error('Invalid response format from Gemini API');
-    }
-    
-    const text = response.text().trim();
-    
-    // Clean up the response text to ensure it's valid JSON
-    const jsonStart = text.indexOf('{');
-    const jsonEnd = text.lastIndexOf('}') + 1;
-    const jsonString = text.substring(jsonStart, jsonEnd);
-    
+    // Generate content with error handling
+    let text;
     try {
+      const result = await model.generateContent({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig,
+      });
+      
+      const response = await result.response;
+      if (!response || !response.candidates || !response.candidates[0] || !response.candidates[0].content) {
+        throw new Error('Invalid response format from Gemini API');
+      }
+      
+      text = response.text().trim();
+      console.log('Raw Gemini response:', text); // Log the raw response for debugging
+      
+      // Clean up the response text to ensure it's valid JSON
+      const jsonStart = Math.max(0, text.indexOf('{'));
+      const jsonEnd = text.lastIndexOf('}') + 1;
+      
+      if (jsonStart < 0 || jsonEnd <= 0) {
+        throw new Error('Could not find JSON object in response');
+      }
+      
+      const jsonString = text.substring(jsonStart, jsonEnd);
       const recommendation = JSON.parse(jsonString);
       
       // Validate the response structure
       if (!recommendation.skills || !recommendation.roadmap) {
-        throw new Error('Invalid response format: Missing required fields');
+        throw new Error('Invalid response format: Missing required fields (skills or roadmap)');
       }
       
-      res.json(recommendation);
+      // Ensure we have a valid response before sending
+      res.setHeader('Content-Type', 'application/json');
+      return res.json({
+        success: true,
+        data: recommendation
+      });
       
-    } catch (parseError) {
-      console.error('Error parsing response:', parseError);
-      console.error('Response text:', text);
-      throw new Error('Failed to parse AI response. Please try again.');
+    } catch (error) {
+      console.error('Error in generateContent or response processing:', error);
+      console.error('Response text that caused error:', text || 'No response text');
+      
+      // Return a mock response for now to help with frontend development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Sending mock response for development');
+        return res.json({
+          success: true,
+          data: {
+            skills: [
+              {
+                name: 'JavaScript',
+                level: 'Intermediate',
+                importance: 'High',
+                resources: [
+                  {
+                    type: 'Documentation',
+                    title: 'MDN JavaScript Guide',
+                    url: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide'
+                  }
+                ]
+              }
+            ],
+            roadmap: [
+              {
+                step: 1,
+                title: 'Learn Core Concepts',
+                description: 'Master the fundamentals of your role',
+                duration: '2-4 weeks',
+                resources: []
+              }
+            ]
+          }
+        });
+      }
+      
+      throw error; // Re-throw to be caught by the outer catch
     }
 
   } catch (error) {

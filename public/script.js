@@ -210,13 +210,29 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify(data)
       });
   
+      // First check if the response is JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        console.error('Non-JSON response:', text);
+        throw new Error(`Server returned ${response.status}: ${response.statusText}. ${text.substring(0, 100)}...`);
+      }
+      
+      // Parse the response as JSON
+      const responseData = await response.json();
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate recommendations');
+        throw new Error(responseData.error || `Server error: ${response.status}`);
+      }
+      
+      // Check if the response has the expected structure
+      if (!responseData.success || !responseData.data) {
+        console.error('Unexpected response format:', responseData);
+        throw new Error('Received an unexpected response format from the server');
       }
   
-      const recommendation = await response.json();
-      displayRecommendations(recommendation);
+      // Display the recommendations from the data property
+      displayRecommendations(responseData.data);
   
       resultsContainer.classList.remove('hidden');
       outputContent.classList.remove('hidden');
