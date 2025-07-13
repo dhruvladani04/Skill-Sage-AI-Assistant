@@ -27,10 +27,47 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
   
+  // Start Learning button in the form
   if (startLearningBtn) {
-    startLearningBtn.addEventListener('click', () => {
-      alert('Starting your learning journey! This feature will be implemented soon.');
+    startLearningBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      showComingSoon('Start Learning');
     });
+  }
+  
+  // Save as PDF button in results
+  const savePdfBtn = document.getElementById('save-pdf');
+  if (savePdfBtn) {
+    savePdfBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      showComingSoon('Save as PDF');
+    });
+  }
+  
+  // Start Learning button in results
+  const startLearningResultsBtn = document.getElementById('start-learning');
+  if (startLearningResultsBtn) {
+    startLearningResultsBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      showComingSoon('Start Learning');
+    });
+  }
+  
+  // Function to show coming soon message
+  function showComingSoon(feature) {
+    const notification = document.createElement('div');
+    notification.className = 'coming-soon-notification';
+    notification.textContent = `${feature} - Coming Soon!`;
+    document.body.appendChild(notification);
+    
+    // Add show class to trigger animation
+    setTimeout(() => notification.classList.add('show'), 10);
+    
+    // Remove notification after animation
+    setTimeout(() => {
+      notification.classList.remove('show');
+      setTimeout(() => notification.remove(), 300);
+    }, 3000);
   }
   
   // Initialize tooltips
@@ -138,18 +175,13 @@ document.addEventListener('DOMContentLoaded', () => {
   async function handleFormSubmit(e) {
     e.preventDefault();
     
-    // Get form elements
     const submitButton = form.querySelector('button[type="submit"]');
     const loader = document.getElementById('loader');
-    
-    // Disable form submission while loading
     submitButton.disabled = true;
     
     try {
-      // Show the full-screen loader
       loader.classList.add('visible');
       
-      // Gather form data
       const formData = new FormData(form);
       const data = {
         role: formData.get('role') || 'Not specified',
@@ -158,54 +190,60 @@ document.addEventListener('DOMContentLoaded', () => {
         goals: formData.get('goals') || 'Not specified',
         project: formData.get('project') || 'Not specified',
       };
-      
-      // Validate required fields
+  
       if (!data.role || data.role === 'Not specified') {
         throw new Error('Please select a role');
       }
-      
-      // Simulate API call with timeout
-      const recommendationText = await new Promise((resolve, reject) => {
-        setTimeout(() => {
-          try {
-            const mockData = generateMockRecommendation(data);
-            resolve(mockData);
-          } catch (error) {
-            reject(error);
-          }
-        }, 2000); // Increased timeout for better UX
+  
+      // Make actual API call to your backend
+      const response = await fetch('http://localhost:3000/api/generate-recommendation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
       });
-      
-      // Process and display results
-      displayRecommendations(recommendationText);
-      
-      // Show results container
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate recommendations');
+      }
+  
+      const recommendation = await response.json();
+      displayRecommendations(recommendation);
+  
       resultsContainer.classList.remove('hidden');
       outputContent.classList.remove('hidden');
       
-      // Scroll to results
       setTimeout(() => {
         resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
       
     } catch (error) {
-      console.error('Form submission error:', error);
+      console.error('API Error:', error);
       showError(error);
     } finally {
-      // Always hide the loader
       loader.classList.remove('visible');
-      
-      // Re-enable the submit button after a short delay
-      setTimeout(() => {
-        submitButton.disabled = false;
-      }, 500);
+      setTimeout(() => submitButton.disabled = false, 500);
     }
   }
   
   function displayRecommendations(recommendationText) {
     // Clear previous results
-    skillsOutput.innerHTML = '';
-    roadmapOutput.innerHTML = '';
+    if (skillsOutput) skillsOutput.innerHTML = '';
+    if (roadmapOutput) roadmapOutput.innerHTML = '';
+    
+    if (!recommendationText) {
+      console.error('No recommendation data provided');
+      showError(new Error('No recommendation data was received. Please try again.'));
+      return;
+    }
+    
+    if (!Array.isArray(recommendationText.skills) || !Array.isArray(recommendationText.roadmap)) {
+      console.error('Invalid recommendation data structure:', recommendationText);
+      showError(new Error('The recommendation data is not in the expected format. Please try again.'));
+      return;
+    }
     
     // Display skills with resources
     recommendationText.skills.forEach(skill => {
@@ -302,15 +340,43 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   
   function showError(error) {
+    // Ensure we have a valid error message
+    const errorMessage = error?.message || 'An unknown error occurred. Please try again.';
+    
+    // Create error element
     const errorEl = document.createElement('div');
     errorEl.className = 'error-message';
     errorEl.innerHTML = `
       <i class="fas fa-exclamation-circle"></i>
       <div>
         <h4>Something went wrong</h4>
-        <p>${error.message || 'Please try again later.'}</p>
+        <p>${errorMessage}</p>
       </div>
     `;
+    
+    // Add to DOM
+    const form = document.getElementById('profile-form');
+    if (form) {
+      // Remove any existing error messages
+      const existingError = form.querySelector('.error-message');
+      if (existingError) {
+        existingError.remove();
+      }
+      
+      // Insert new error message at the top of the form
+      form.insertBefore(errorEl, form.firstChild);
+      
+      // Scroll to the error message
+      setTimeout(() => {
+        errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    } else {
+      // Fallback to alert if we can't find the form
+      alert(`Error: ${errorMessage}`);
+    }
+    
+    // Log the full error to console for debugging
+    console.error('Error:', error);
     
     outputContent.innerHTML = '';
     outputContent.appendChild(errorEl);
