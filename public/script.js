@@ -195,8 +195,14 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error('Please select a role');
       }
   
-      // Make actual API call to your backend
-      const response = await fetch('http://localhost:3000/api/generate-recommendation', {
+      // Determine the API URL based on the current environment
+      const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+      const apiUrl = isProduction 
+        ? 'https://skill-sage-ai-assistant.vercel.app/api/generate-recommendation'
+        : 'http://localhost:3000/api/generate-recommendation';
+      
+      // Make API call to the appropriate backend
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
