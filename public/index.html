@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkillSage AI Assistant</title>
+  <link rel="stylesheet" href="index.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="header-content">
+        <div class="logo">
+          <i class="fas fa-graduation-cap"></i>
+          <h1>SkillSage</h1>
+        </div>
+        <p class="tagline">Your personal guide to career growth and skill acquisition</p>
+      </div>
+    </header>
+
+    <main>
+      <form id="profile-form" class="form-container">
+        <div class="form-section">
+          <div class="form-group">
+            <h2><i class="fas fa-user-circle"></i> My Profile</h2>
+            <div class="form-row">
+              <div class="form-field">
+                <label for="role">
+                  <i class="fas fa-briefcase"></i> Current Role/Title
+                </label>
+                <div class="input-with-icon">
+                  <input type="text" id="role" name="role" placeholder="e.g., Frontend Developer" required>
+                  <i class="fas fa-user-tie"></i>
+                </div>
+              </div>
+              
+              <div class="form-field">
+                <label for="experience">
+                  <i class="far fa-clock"></i> Years of Experience
+                </label>
+                <div class="input-with-icon">
+                  <input type="text" id="experience" name="experience" placeholder="e.g., 3 years" required>
+                  <i class="fas fa-history"></i>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-field">
+              <label for="skills">
+                <i class="fas fa-code"></i> Current Skills (comma separated)
+              </label>
+              <div class="input-with-icon">
+                <textarea id="skills" name="skills" rows="3" placeholder="e.g., HTML, CSS, JavaScript, React, Git" required></textarea>
+                <i class="fas fa-tags"></i>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <h2><i class="fas fa-bullseye"></i> My Goals <span class="optional">(Optional)</span></h2>
+            <div class="form-field">
+              <label for="goals">
+                <i class="fas fa-flag"></i> Career Goals
+              </label>
+              <div class="input-with-icon">
+                <textarea id="goals" name="goals" rows="3" placeholder="e.g., Move into full-stack development, Learn cloud computing, etc."></textarea>
+                <i class="fas fa-bullseye"></i>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <h2><i class="fas fa-lightbulb"></i> Project Idea <span class="optional">(Optional)</span></h2>
+            <div class="form-field">
+              <label for="project">
+                <i class="fas fa-project-diagram"></i> Describe an upcoming project or idea
+              </label>
+              <div class="input-with-icon">
+                <textarea id="project" name="project" rows="4" placeholder="e.g., Build a data pipeline that ingests streaming data from multiple sources and provides real-time analytics..."></textarea>
+                <i class="fas fa-lightbulb"></i>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">
+              <span class="btn-text">Generate My Learning Plan</span>
+              <i class="fas fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <!-- Full-screen loader overlay -->
+      <div id="loader" class="loader-overlay hidden">
+        <div class="loader-content">
+          <div class="spinner"></div>
+          <p>Analyzing your profile and generating recommendations...</p>
+        </div>
+      </div>
+
+      <div id="results-container" class="hidden">
+        <div class="results-header">
+          <h2><i class="fas fa-chart-line"></i> Your Personalized Learning Path</h2>
+          <p class="results-subtitle">Tailored recommendations to help you achieve your goals</p>
+        </div>
+        
+        <div id="output-content" class="hidden">
+          <div class="results-section">
+            <h2 class="section-title">
+              <i class="fas fa-star"></i>
+              Recommended Skills
+            </h2>
+            <div id="skills-output" class="skills-container">
+              <!-- Skills will be dynamically inserted here -->
+            </div>
+          </div>
+          
+          <div class="results-section roadmap-section">
+            <h2 class="section-title">
+              <i class="fas fa-map-marked-alt"></i>
+              Learning Roadmap
+            </h2>
+            <div id="roadmap-output" class="roadmap-steps">
+              <!-- Roadmap steps will be dynamically inserted here -->
+            </div>
+          </div>
+          
+          <div class="results-actions">
+            <button class="btn-secondary" id="save-pdf">
+              <i class="fas fa-file-pdf"></i> Save as PDF
+            </button>
+            <button class="btn-primary" id="start-learning">
+              <i class="fas fa-rocket"></i> Start Learning
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+    
+    <footer>
+      <p>© 2025 SkillSage AI Assistant. All rights reserved.</p>
+      <p class="creator">Created with ❤️ by Dhruv Ladani</p>
+      <div class="social-links">
+        <a href="mailto:dhruvladani04@gmail.com" aria-label="Email">
+          <i class="fas fa-envelope"></i>
+        </a>
+        <a href="https://www.linkedin.com/in/dhruv-ladani-a65578252/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+          <i class="fab fa-linkedin"></i>
+        </a>
+        <a href="https://github.com/dhruvladani04" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+          <i class="fab fa-github"></i>
+        </a>
+      </div>
+    </footer>
+  </div>
+  
+  <div class="floating-shapes">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+  </div>
+  
+  <script src="script.js"></script>
+</body>
+</html>
