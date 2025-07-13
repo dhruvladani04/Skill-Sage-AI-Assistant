@@ -1,6 +1,6 @@
 # SkillSage AI Assistant
 
-![SkillSage Demo](https://via.placeholder.com/800x400.png?text=SkillSage+AI+Assistant+Demonstration)
+
 
 ## 🚀 Overview
 SkillSage AI Assistant is an intelligent learning path generator that helps developers and tech enthusiasts discover the skills they need to advance their careers. By analyzing your current role, experience, and goals, SkillSage creates a personalized learning roadmap with curated resources.
